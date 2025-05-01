@@ -1,128 +1,69 @@
-<script setup>
+﻿<script setup>
 import { ref, reactive, onMounted } from 'vue'
 import GameMap from '../components/GameMap.vue'
 
-// 创建卡组的工具函数
-function createDeck({ length, prefix, props }) {
-  return Array.from({ length }, (_, i) => ({
-    id: `${prefix}-${i + 1}`,
-    ...props(i)
-  }))
-}
-
-// 游戏状态
+// 娓告垙鐘舵€?
 const decks = reactive({
-  mainDeck: createDeck({
-    length: 20,
-    prefix: 'main',
-    props: () => ({ color: getRandomColor() })
-  }),
-  deckA: createDeck({
-    length: 7,
-    prefix: 'deckA',
-    props: (i) => ({ 
-      image: `/image/opreators/split-${i + 1}.png`,
-      type: 'operator'
-    })
-  }),
-  deckB: createDeck({
-    length: 6,
-    prefix: 'deckB',
-    props: (i) => ({
-      image: `/image/enterprises/split-${i + 1}.png`,
-      type: 'enterprise'
-    })
-  }),
-  deckC: createDeck({
-    length: 10,
-    prefix: 'deckC',
-    props: () => ({ color: '#90EE90' })
-  }),
-  eventDeckA: createDeck({
-    length: 6,
-    prefix: 'eventA',
-    props: (i) => ({
-      image: `image/greenevents/split-${i + 1}.png`
-    })
-  }),
-  eventDeckB: createDeck({
-    length: 11,
-    prefix: 'eventB',
-    props: (i) => ({
-      image: `image/yellowevents/split-${i + 1}.png`
-    })
-  }),
-  eventDeckC: createDeck({
-    length: 7,
-    prefix: 'eventC',
-    props: (i) => ({
-      image: `image/redevents/split-${i + 1}.png`
-    })
-  }),
-  deckD: createDeck({
-    length: 7,
-    prefix: 'operator',
-    props: (i) => ({
-      image: `/image/opreators/split-${i + 1}.png`,
-      type: 'operator',
-      width: 300,
-      height: 425
-    })
-  }),
-  deckE: createDeck({
-    length: 6,
-    prefix: 'enterprise',
-    props: (i) => ({
-      image: `/image/enterprises/split-${i + 1}.png`,
-      type: 'enterprise',
-      width: 325,
-      height: 925
-    })
-  })
+  mainDeck: Array.from({ length: 20 }, (_, i) => ({
+    id: `main-${i + 1}`,
+    color: getRandomColor()
+  })),
+  deckA: Array.from({ length: 10 }, (_, i) => ({
+    id: `deckA-${i + 1}`,
+    color: '#FFC0CB' // 绮夎壊
+  })),
+  deckB: Array.from({ length: 10 }, (_, i) => ({
+    id: `deckB-${i + 1}`,
+    color: '#ADD8E6' // 娴呰摑
+  })),
+  deckC: Array.from({ length: 10 }, (_, i) => ({
+    id: `deckC-${i + 1}`,
+    color: '#90EE90' // 娴呯豢
+  }))
 })
 
 const cardsInPlay = reactive([])
 
-// 角色系统
+// 瑙掕壊绯荤粺
 const characters = reactive([
   {
     id: 1,
-    name: '暴风赤红',
+    name: '鏆撮璧ょ孩',
     resources: {
-      生命值: 10,
-      攻击力: 3,
-      防御力: 2
+      鐢熷懡鍊? 10,
+      鏀诲嚮鍔? 3,
+      闃插尽鍔? 2
     },
     color: '#FF6B6B'
   },
   {
     id: 2,
-    name: '法师',
+    name: '娉曞笀',
     resources: {
-      魔力: 8,
-      智力: 5,
-      防御力: 1
+      榄斿姏: 8,
+      鏅哄姏: 5,
+      闃插尽鍔? 1
     },
     color: '#4ECDC4'
   },
   {
     id: 3,
-    name: '游侠',
+    name: '娓镐緺',
     resources: {
-      敏捷: 7,
-      幸运: 4,
-      潜行: 3
+      鏁忔嵎: 7,
+      骞歌繍: 4,
+      娼滆: 3
     },
     color: '#FFD166'
   }
 ])
 
-// 拖动状态
+// 鎷栧姩鐘舵€?
 const position = reactive({ x: 0, y: 0 })
 const isDragging = ref(false)
 const dragStart = reactive({ x: 0, y: 0 })
 
-// 卡牌拖动状态
+// 鍗＄墝鎷栧姩鐘舵€?
 const cardDragState = reactive({
   isDragging: false,
   currentCard: null,
@@ -130,37 +71,35 @@ const cardDragState = reactive({
   offsetY: 0
 })
 
-// 辅助函数
+// 杈呭姪鍑芥暟
 function getRandomColor() {
   const colors = ['#FFC0CB', '#ADD8E6', '#90EE90', '#FFD700', '#FFA07A']
   return colors[Math.floor(Math.random() * colors.length)]
 }
 
-// 抽卡功能
+// 鎶藉崱鍔熻兘
 function drawCard(deckName) {
   if (decks[deckName].length === 0) return
   
-  const randomIndex = Math.floor(Math.random() * decks[deckName].length)
-  const card = decks[deckName].splice(randomIndex, 1)[0]
+  const card = decks[deckName].shift()
   
   cardsInPlay.push({
     ...card,
     x: window.innerWidth / 2 + 2000,
     y: window.innerHeight / 2 - 1800,
-    zIndex: 1,
-    'data-type': card.type // 添加类型属性以应用正确的样式
+    zIndex: 1
   })
 }
 
-// 资源管理
+// 璧勬簮绠＄悊
 function changeResource(characterIndex, resourceName, delta) {
   const character = characters[characterIndex]
   character.resources[resourceName] = Math.max(0, character.resources[resourceName] + delta)
 }
 
-// 桌面拖动处理函数
+// 妗岄潰鎷栧姩澶勭悊鍑芥暟
 function startDrag(event) {
-  // 如果点击的是UI元素或卡牌，不启动桌面拖动
+  // 濡傛灉鐐瑰嚮鐨勬槸UI鍏冪礌鎴栧崱鐗岋紝涓嶅惎鍔ㄦ闈㈡嫋鍔?
   if (event.target.closest('.character-panel, .deck-area, .card')) {
     return
   }
@@ -181,9 +120,9 @@ function stopDrag() {
   isDragging.value = false
 }
 
-// 卡牌拖动处理函数
+// 鍗＄墝鎷栧姩澶勭悊鍑芥暟
 function startCardDrag(card, event) {
-  event.stopPropagation() // 阻止事件冒泡，防止触发桌面拖动
+  event.stopPropagation() // 闃绘浜嬩欢鍐掓场锛岄槻姝㈣Е鍙戞闈㈡嫋鍔?
   
   cardDragState.isDragging = true
   cardDragState.currentCard = card
@@ -194,7 +133,7 @@ function startCardDrag(card, event) {
   cardDragState.offsetX = clientX - card.x
   cardDragState.offsetY = clientY - card.y
   
-  // 提高当前卡牌的z-index
+  // 鎻愰珮褰撳墠鍗＄墝鐨剒-index
   card.zIndex = 100
   
   document.addEventListener('mousemove', handleCardDrag)
@@ -226,24 +165,6 @@ function stopCardDrag() {
   document.removeEventListener('touchmove', handleCardDrag)
   document.removeEventListener('touchend', stopCardDrag)
 }
-
-const subDeckSettings = ref({
-  eventDeckA: {
-    name: '事件卡组A',
-    capacity: 10,
-    imagePath: '/image/greenevents/split-'
-  },
-  eventDeckB: {
-    name: '事件卡组B',
-    capacity: 10,
-    imagePath: '/image/yellowevents/split-'
-  },
-  eventDeckC: {
-    name: '事件卡组C',
-    capacity: 10,
-    imagePath: '/image/redevents/split-'
-  }
-})
 </script>
 
 <template>
@@ -256,7 +177,7 @@ const subDeckSettings = ref({
          transform: `translate(${position.x}px, ${position.y}px)`,
          cursor: isDragging ? 'grabbing' : 'grab'
        }">
-    <!-- 角色资源面板 -->
+    <!-- 瑙掕壊璧勬簮闈㈡澘 -->
     <div class="character-panel">
       <div 
         class="character-card" 
@@ -275,14 +196,14 @@ const subDeckSettings = ref({
       </div>
     </div>
     
-    <!-- 游戏地图 -->
+    <!-- 娓告垙鍦板浘 -->
     <div class="map-container">
       <GameMap />
     </div>
     
-    <!-- 游戏主区域 -->
+    <!-- 娓告垙涓诲尯鍩?-->
     <div class="play-area">
-      <!-- 放置的卡牌 -->
+      <!-- 鏀剧疆鐨勫崱鐗?-->
       <div 
         class="card" 
         v-for="card in cardsInPlay" 
@@ -291,32 +212,31 @@ const subDeckSettings = ref({
           left: card.x + 'px',
           top: card.y + 'px',
           backgroundColor: card.color,
-          backgroundImage: card.image ? `url(${card.image})` : 'none',
           zIndex: card.zIndex
         }"
         @mousedown="startCardDrag(card, $event)"
         @touchstart="startCardDrag(card, $event)"
       >
-        <span v-if="!card.image">卡牌 {{ card.id.split('-')[1] }}</span>
+        鍗＄墝 {{ card.id.split('-')[1] }}
       </div>
     </div>
     
-    <!-- 卡组区域 -->
+    <!-- 鍗＄粍鍖哄煙 -->
     <div class="deck-area">
-      <!-- 主卡组 (右上角) -->
+      <!-- 涓诲崱缁?(鍙充笂瑙? -->
       <div 
         class="deck main-deck" 
         @click="drawCard('mainDeck')"
       >
         <div v-if="decks.mainDeck.length === 0" class="empty-deck">
-          空
+          绌?
         </div>
         <div v-else class="deck-content">
-          主卡组<br>{{ decks.mainDeck.length }}
+          涓诲崱缁?br>{{ decks.mainDeck.length }}
         </div>
       </div>
       
-      <!-- 副卡组 (右侧) -->
+      <!-- 鍓崱缁?(鍙充晶) -->
       <div class="sub-decks">
         <div 
           class="deck sub-deck" 
@@ -325,27 +245,10 @@ const subDeckSettings = ref({
           @click="drawCard(name)"
         >
           <div v-if="decks[name].length === 0" class="empty-deck">
-            空
+            绌?
           </div>
           <div v-else class="deck-content">
-            卡组{{ deck }}<br>{{ decks[name].length }}
-          </div>
-        </div>
-      </div>
-
-      <!-- 事件卡组 -->
-      <div class="event-decks">
-        <div 
-          class="deck event-deck" 
-          v-for="(deck, name) in { eventDeckA: 'A', eventDeckB: 'B', eventDeckC: 'C' }" 
-          :key="name"
-          @click="drawCard(name)"
-        >
-          <div v-if="decks[name].length === 0" class="empty-deck">
-            空
-          </div>
-          <div v-else class="deck-content">
-            事件卡组{{ deck }}<br>{{ decks[name].length }}
+            鍗＄粍{{ deck }}<br>{{ decks[name].length }}
           </div>
         </div>
       </div>
@@ -356,7 +259,7 @@ const subDeckSettings = ref({
 <style scoped>
 .game-container {
   position: relative;
-  width: 200vw;  /* 扩大容器尺寸 */
+  width: 200vw;  /* 鎵╁ぇ瀹瑰櫒灏哄 */
   height: 200vh;
   background-color: #1f1e33;
   transition: transform 0.1s ease;
@@ -365,70 +268,41 @@ const subDeckSettings = ref({
 }
 
 .play-area {
-  position: relative;
+  position: relative;  /* 鏀逛负鐩稿瀹氫綅 */
   width: 100%;
   height: 100%;
   z-index: 1;
-  min-height: 800px; /* 确保有足够空间显示横向卡牌 */
 }
 
-:root {
-  --card-bg-color: white;
-  --card-border-radius: 8px;
-  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  --card-active-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-  --card-transition: transform 0.1s, box-shadow 0.1s;
-}
-
-/* 卡牌基础样式 */
+/* 鍗＄墝鏍峰紡 */
 .card {
   pointer-events: auto;
-  background-color: var(--card-bg-color);
-  border-radius: var(--card-border-radius);
-  box-shadow: var(--card-shadow);
+  width: 100px;
+  height: 150px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   position: absolute;
   cursor: grab;
   user-select: none;
-  transition: var(--card-transition);
+  transition: transform 0.1s, box-shadow 0.1s;
   font-weight: bold;
   color: #333;
   z-index: 1;
-  background-size: cover;
-  background-position: center;
-}
-
-/* 角色卡牌样式 */
-.card[data-type="operator"] {
-  width: 300px;
-  height: 425px;
-  border: 3px solid #4a90e2;
-}
-
-/* 企业合作版卡牌样式 */
-.card[data-type="enterprise"] {
-  width: 325px;
-  height: 925px;
-  border: 3px solid #50c878;
-}
-
-/* 默认卡牌样式 */
-.card:not([data-type]) {
-  width: 680px;
-  height: 480px;
 }
 
 .card:active {
   cursor: grabbing;
   transform: scale(1.05);
-  box-shadow: var(--card-active-shadow);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* 角色面板 */
+/* 瑙掕壊闈㈡澘 */
 .character-panel {
-  position: fixed;  /* 保持固定定位 */
+  position: fixed;  /* 淇濇寔鍥哄畾瀹氫綅 */
   top: 380px;
   left: 600px;
   display: flex;
@@ -481,18 +355,18 @@ const subDeckSettings = ref({
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* 卡组区域 */
+/* 鍗＄粍鍖哄煙 */
 .deck-area {
-  position: fixed;
+  position: fixed;  /* 淇濇寔鍥哄畾瀹氫綅 */
   top: 200px;
-  right: 960px;
+  right: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
   z-index: 2;
 }
 
-/* 卡组样式 */
+/* 鍗＄粍鏍峰紡 */
 .deck {
   width: 280px;
   height: 120px;
@@ -512,7 +386,7 @@ const subDeckSettings = ref({
 }
 
 .main-deck {
-  background-color: #6a5acd; /* 紫罗兰色 */
+  background-color: #6a5acd; /* 绱綏鍏拌壊 */
 }
 
 .sub-decks {
@@ -522,7 +396,7 @@ const subDeckSettings = ref({
 }
 
 .sub-deck {
-  background-color: #4682b4; /* 钢蓝色 */
+  background-color: #4682b4; /* 閽㈣摑鑹?*/
 }
 
 .deck-content {
@@ -537,7 +411,7 @@ const subDeckSettings = ref({
 }
 
 .map-container {
-  position: relative;  /* 改为相对定位 */
+  position: relative;  /* 鏀逛负鐩稿瀹氫綅 */
   width: 100%;
   height: 100%;
   z-index: 0;
@@ -554,18 +428,5 @@ const subDeckSettings = ref({
 .deck {
   width: 80px;
   height: 120px;
-}
-
-/* 事件卡组样式 */
-.event-decks {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.event-deck {
-  background-color: rgba(0, 0, 0, 0.7);
-  width: 340px;
-  height: 240px;
 }
 </style>

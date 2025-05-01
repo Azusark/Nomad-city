@@ -2,83 +2,24 @@
 import { ref, reactive, onMounted } from 'vue'
 import GameMap from '../components/GameMap.vue'
 
-// 创建卡组的工具函数
-function createDeck({ length, prefix, props }) {
-  return Array.from({ length }, (_, i) => ({
-    id: `${prefix}-${i + 1}`,
-    ...props(i)
-  }))
-}
-
 // 游戏状态
 const decks = reactive({
-  mainDeck: createDeck({
-    length: 20,
-    prefix: 'main',
-    props: () => ({ color: getRandomColor() })
-  }),
-  deckA: createDeck({
-    length: 7,
-    prefix: 'deckA',
-    props: (i) => ({ 
-      image: `/image/opreators/split-${i + 1}.png`,
-      type: 'operator'
-    })
-  }),
-  deckB: createDeck({
-    length: 6,
-    prefix: 'deckB',
-    props: (i) => ({
-      image: `/image/enterprises/split-${i + 1}.png`,
-      type: 'enterprise'
-    })
-  }),
-  deckC: createDeck({
-    length: 10,
-    prefix: 'deckC',
-    props: () => ({ color: '#90EE90' })
-  }),
-  eventDeckA: createDeck({
-    length: 6,
-    prefix: 'eventA',
-    props: (i) => ({
-      image: `image/greenevents/split-${i + 1}.png`
-    })
-  }),
-  eventDeckB: createDeck({
-    length: 11,
-    prefix: 'eventB',
-    props: (i) => ({
-      image: `image/yellowevents/split-${i + 1}.png`
-    })
-  }),
-  eventDeckC: createDeck({
-    length: 7,
-    prefix: 'eventC',
-    props: (i) => ({
-      image: `image/redevents/split-${i + 1}.png`
-    })
-  }),
-  deckD: createDeck({
-    length: 7,
-    prefix: 'operator',
-    props: (i) => ({
-      image: `/image/opreators/split-${i + 1}.png`,
-      type: 'operator',
-      width: 300,
-      height: 425
-    })
-  }),
-  deckE: createDeck({
-    length: 6,
-    prefix: 'enterprise',
-    props: (i) => ({
-      image: `/image/enterprises/split-${i + 1}.png`,
-      type: 'enterprise',
-      width: 325,
-      height: 925
-    })
-  })
+  mainDeck: Array.from({ length: 20 }, (_, i) => ({
+    id: `main-${i + 1}`,
+    color: getRandomColor()
+  })),
+  deckA: Array.from({ length: 10 }, (_, i) => ({
+    id: `deckA-${i + 1}`,
+    color: '#FFC0CB' // 粉色
+  })),
+  deckB: Array.from({ length: 10 }, (_, i) => ({
+    id: `deckB-${i + 1}`,
+    color: '#ADD8E6' // 浅蓝
+  })),
+  deckC: Array.from({ length: 10 }, (_, i) => ({
+    id: `deckC-${i + 1}`,
+    color: '#90EE90' // 浅绿
+  }))
 })
 
 const cardsInPlay = reactive([])
@@ -140,15 +81,13 @@ function getRandomColor() {
 function drawCard(deckName) {
   if (decks[deckName].length === 0) return
   
-  const randomIndex = Math.floor(Math.random() * decks[deckName].length)
-  const card = decks[deckName].splice(randomIndex, 1)[0]
+  const card = decks[deckName].shift()
   
   cardsInPlay.push({
     ...card,
     x: window.innerWidth / 2 + 2000,
     y: window.innerHeight / 2 - 1800,
-    zIndex: 1,
-    'data-type': card.type // 添加类型属性以应用正确的样式
+    zIndex: 1
   })
 }
 
@@ -226,24 +165,6 @@ function stopCardDrag() {
   document.removeEventListener('touchmove', handleCardDrag)
   document.removeEventListener('touchend', stopCardDrag)
 }
-
-const subDeckSettings = ref({
-  eventDeckA: {
-    name: '事件卡组A',
-    capacity: 10,
-    imagePath: '/image/greenevents/split-'
-  },
-  eventDeckB: {
-    name: '事件卡组B',
-    capacity: 10,
-    imagePath: '/image/yellowevents/split-'
-  },
-  eventDeckC: {
-    name: '事件卡组C',
-    capacity: 10,
-    imagePath: '/image/redevents/split-'
-  }
-})
 </script>
 
 <template>
@@ -291,13 +212,12 @@ const subDeckSettings = ref({
           left: card.x + 'px',
           top: card.y + 'px',
           backgroundColor: card.color,
-          backgroundImage: card.image ? `url(${card.image})` : 'none',
           zIndex: card.zIndex
         }"
         @mousedown="startCardDrag(card, $event)"
         @touchstart="startCardDrag(card, $event)"
       >
-        <span v-if="!card.image">卡牌 {{ card.id.split('-')[1] }}</span>
+        卡牌 {{ card.id.split('-')[1] }}
       </div>
     </div>
     
@@ -332,23 +252,6 @@ const subDeckSettings = ref({
           </div>
         </div>
       </div>
-
-      <!-- 事件卡组 -->
-      <div class="event-decks">
-        <div 
-          class="deck event-deck" 
-          v-for="(deck, name) in { eventDeckA: 'A', eventDeckB: 'B', eventDeckC: 'C' }" 
-          :key="name"
-          @click="drawCard(name)"
-        >
-          <div v-if="decks[name].length === 0" class="empty-deck">
-            空
-          </div>
-          <div v-else class="deck-content">
-            事件卡组{{ deck }}<br>{{ decks[name].length }}
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -365,65 +268,36 @@ const subDeckSettings = ref({
 }
 
 .play-area {
-  position: relative;
+  position: relative;  /* 改为相对定位 */
   width: 100%;
   height: 100%;
   z-index: 1;
-  min-height: 800px; /* 确保有足够空间显示横向卡牌 */
 }
 
-:root {
-  --card-bg-color: white;
-  --card-border-radius: 8px;
-  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  --card-active-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-  --card-transition: transform 0.1s, box-shadow 0.1s;
-}
-
-/* 卡牌基础样式 */
+/* 卡牌样式 */
 .card {
   pointer-events: auto;
-  background-color: var(--card-bg-color);
-  border-radius: var(--card-border-radius);
-  box-shadow: var(--card-shadow);
+  width: 100px;
+  height: 150px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
   position: absolute;
   cursor: grab;
   user-select: none;
-  transition: var(--card-transition);
+  transition: transform 0.1s, box-shadow 0.1s;
   font-weight: bold;
   color: #333;
   z-index: 1;
-  background-size: cover;
-  background-position: center;
-}
-
-/* 角色卡牌样式 */
-.card[data-type="operator"] {
-  width: 300px;
-  height: 425px;
-  border: 3px solid #4a90e2;
-}
-
-/* 企业合作版卡牌样式 */
-.card[data-type="enterprise"] {
-  width: 325px;
-  height: 925px;
-  border: 3px solid #50c878;
-}
-
-/* 默认卡牌样式 */
-.card:not([data-type]) {
-  width: 680px;
-  height: 480px;
 }
 
 .card:active {
   cursor: grabbing;
   transform: scale(1.05);
-  box-shadow: var(--card-active-shadow);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* 角色面板 */
@@ -483,12 +357,12 @@ const subDeckSettings = ref({
 
 /* 卡组区域 */
 .deck-area {
-  position: fixed;
+  position: fixed;  /* 保持固定定位 */
   top: 200px;
-  right: 960px;
+  right: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
   z-index: 2;
 }
 
@@ -554,18 +428,5 @@ const subDeckSettings = ref({
 .deck {
   width: 80px;
   height: 120px;
-}
-
-/* 事件卡组样式 */
-.event-decks {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.event-deck {
-  background-color: rgba(0, 0, 0, 0.7);
-  width: 340px;
-  height: 240px;
 }
 </style>
