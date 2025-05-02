@@ -115,7 +115,7 @@ const currentBlock = ref(null)
 
 // 打开图片选择器
 const openImagePicker = (block) => {
-  currentBlock.value = block
+  currentBlock.alue = block
   showImagePicker.value = true
   showColorPicker.value = false // 确保另一个选择器关闭
 }

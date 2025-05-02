@@ -11,17 +11,33 @@ function createDeck({ length, prefix, props }) {
 }
 
 // 游戏状态
+// 修改主卡组为四个颜色子卡组
 const decks = reactive({
-  mainDeck: createDeck({
-    length: 20,
-    prefix: 'main',
-    props: () => ({ color: getRandomColor() })
+  mainDeckRed: createDeck({
+    length: 5,
+    prefix: 'main-red',
+    props: () => ({ color: '#FF6B6B', type: 'colorBlock' })
+  }),
+  mainDeckBlue: createDeck({
+    length: 5,
+    prefix: 'main-blue',
+    props: () => ({ color: '#4ECDC4', type: 'colorBlock' })
+  }),
+  mainDeckYellow: createDeck({
+    length: 5,
+    prefix: 'main-yellow',
+    props: () => ({ color: '#FFD166', type: 'colorBlock' })
+  }),
+  mainDeckGreen: createDeck({
+    length: 5,
+    prefix: 'main-green',
+    props: () => ({ color: '#90EE90', type: 'colorBlock' })
   }),
   deckA: createDeck({
     length: 7,
     prefix: 'deckA',
     props: (i) => ({ 
-      image: `/image/opreators/split-${i + 1}.png`,
+      image: `/image/operators/split-${i + 1}.png`,
       type: 'operator'
     })
   }),
@@ -63,8 +79,8 @@ const decks = reactive({
     length: 7,
     prefix: 'operator',
     props: (i) => ({
-      image: `/image/opreators/split-${i + 1}.png`,
-      type: 'operator',
+      image: `/image/operators/split-${i + 1}.png`,
+      type: 'operator', // Ensure type property exists
       width: 300,
       height: 425
     })
@@ -74,7 +90,7 @@ const decks = reactive({
     prefix: 'enterprise',
     props: (i) => ({
       image: `/image/enterprises/split-${i + 1}.png`,
-      type: 'enterprise',
+      type: 'enterprise', // Ensure type property exists
       width: 325,
       height: 925
     })
@@ -160,15 +176,24 @@ function changeResource(characterIndex, resourceName, delta) {
 
 // 桌面拖动处理函数
 function startDrag(event) {
-  // 如果点击的是UI元素或卡牌，不启动桌面拖动
-  if (event.target.closest('.character-panel, .deck-area, .card')) {
-    return
+  const target = event.target;
+  // 如果点击的是卡牌、卡组、角色面板等 UI 区域，就不触发桌面拖动
+  if (
+    target.closest('.character-panel') ||
+    target.closest('.deck-area') ||
+    target.closest('.card') ||
+    target.closest('.deck') ||
+    target.closest('.sub-deck') ||
+    target.closest('.event-deck')
+  ) {
+    return;
   }
-  
-  isDragging.value = true
-  dragStart.x = event.clientX - position.x
-  dragStart.y = event.clientY - position.y
+
+  isDragging.value = true;
+  dragStart.x = event.clientX - position.x;
+  dragStart.y = event.clientY - position.y;
 }
+
 
 function onDrag(event) {
   if (!isDragging.value) return
@@ -183,8 +208,14 @@ function stopDrag() {
 
 // 卡牌拖动处理函数
 function startCardDrag(card, event) {
-  event.stopPropagation() // 阻止事件冒泡，防止触发桌面拖动
+  event.stopPropagation()
+  event.preventDefault() // Prevent default behavior (especially important for touch events)
   
+  // Add boundary check to prevent triggering desktop drag
+  if (event.target.closest('.card')) {
+    isDragging.value = false
+  }
+
   cardDragState.isDragging = true
   cardDragState.currentCard = card
   
@@ -194,7 +225,6 @@ function startCardDrag(card, event) {
   cardDragState.offsetX = clientX - card.x
   cardDragState.offsetY = clientY - card.y
   
-  // 提高当前卡牌的z-index
   card.zIndex = 100
   
   document.addEventListener('mousemove', handleCardDrag)
@@ -287,6 +317,7 @@ const subDeckSettings = ref({
         class="card" 
         v-for="card in cardsInPlay" 
         :key="card.id"
+        :data-type="card.type"
         :style="{
           left: card.x + 'px',
           top: card.y + 'px',
@@ -303,18 +334,30 @@ const subDeckSettings = ref({
     
     <!-- 卡组区域 -->
     <div class="deck-area">
-      <!-- 主卡组 (右上角) -->
-      <div 
-        class="deck main-deck" 
-        @click="drawCard('mainDeck')"
-      >
-        <div v-if="decks.mainDeck.length === 0" class="empty-deck">
-          空
-        </div>
-        <div v-else class="deck-content">
-          主卡组<br>{{ decks.mainDeck.length }}
-        </div>
-      </div>
+
+  <!-- 主卡组 (四色卡组) -->
+<div class="main-deck-group">
+  <div
+    class="deck main-deck"
+    v-for="(label, name) in {
+      mainDeckRed: '红色',
+      mainDeckBlue: '蓝色',
+      mainDeckYellow: '黄色',
+      mainDeckGreen: '绿色'
+    }"
+    :key="name"
+    @click="drawCard(name)"
+    :style="{ backgroundColor: decks[name][0]?.color || '#747377' }"
+  >
+    <div v-if="decks[name].length === 0" class="empty-deck">
+      空
+    </div>
+    <div v-else class="deck-content">
+      {{ label }}卡组<br>{{ decks[name].length }}
+    </div>
+  </div>
+</div>
+
       
       <!-- 副卡组 (右侧) -->
       <div class="sub-decks">
@@ -400,31 +443,30 @@ const subDeckSettings = ref({
   background-position: center;
 }
 
-/* 角色卡牌样式 */
-.card[data-type="operator"] {
-  width: 300px;
-  height: 425px;
-  border: 3px solid #4a90e2;
+/* Increase selector specificity */
+.play-area .card[data-type="operator"] {
+  width: 300px !important;
+  height: 425px !important;
 }
 
-/* 企业合作版卡牌样式 */
-.card[data-type="enterprise"] {
-  width: 325px;
-  height: 925px;
-  border: 3px solid #50c878;
+.play-area .card[data-type="enterprise"] {
+  width: 325px !important;
+  height: 925px !important;
 }
 
-/* 默认卡牌样式 */
-.card:not([data-type]) {
+/* Add scope limitation to default styles */
+.play-area .card:not([data-type]) {
   width: 680px;
   height: 480px;
 }
 
 .card:active {
   cursor: grabbing;
-  transform: scale(1.05);
-  box-shadow: var(--card-active-shadow);
+  /* 去除缩放和阴影变化 */
+  transform: none;
+  box-shadow: var(--card-shadow);
 }
+
 
 /* 角色面板 */
 .character-panel {
@@ -511,9 +553,11 @@ const subDeckSettings = ref({
   transform: translateY(-5px);
 }
 
-.main-deck {
-  background-color: #6a5acd; /* 紫罗兰色 */
+.main-deck-group {
+  display: flex;
+  gap: 10px;
 }
+
 
 .sub-decks {
   display: flex;
@@ -565,7 +609,8 @@ const subDeckSettings = ref({
 
 .event-deck {
   background-color: rgba(0, 0, 0, 0.7);
-  width: 340px;
-  height: 240px;
+  width: 80px;    /* 与其他卡组按钮统一 */
+  height: 120px;
 }
+
 </style>

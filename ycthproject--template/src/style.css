@@ -56,6 +56,13 @@ button:focus-visible {
 
 .card {
   padding: 2em;
+  .play-area .card[data-type="color-block"] {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50%;
+    z-index: 9999 !important;
+  }
+  
 }
 
 #app {
