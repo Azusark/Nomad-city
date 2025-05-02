@@ -432,6 +432,45 @@ const subDeckSettings = ref({
   background-position: center;
 }
 
+/* 纯色方块卡牌样式 */
+.play-area .card[data-type="colorBlock"] {
+  width: 25px !important;
+  height: 25px !important;
+  background-color: var(--card-color);
+  background-image: none !important;
+  font-size: 0 !important;
+  color: transparent !important;
+  z-index: 9999 !important;
+  position: relative;
+  pointer-events: auto !important;
+}
+
+/* 扩大点击区域 */
+.play-area .card[data-type="colorBlock"]::after {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+/* 确保colorBlock卡牌优先响应事件 */
+.play-area .card[data-type="colorBlock"] {
+  pointer-events: auto !important;
+}
+
+/* 恢复其他卡牌的交互能力 */
+.play-area .card:not([data-type="colorBlock"]) {
+  pointer-events: auto !important;
+}
+
+.play-area .card[data-type="colorBlock"]::before {
+  content: none !important;
+}
+
 /* Increase selector specificity */
 .play-area .card[data-type="operator"] {
   width: 300px !important;
