@@ -177,17 +177,6 @@ function changeResource(characterIndex, resourceName, delta) {
 // 桌面拖动处理函数
 function startDrag(event) {
   const target = event.target;
-  // 如果点击的是卡牌、卡组、角色面板等 UI 区域，就不触发桌面拖动
-  if (
-    target.closest('.character-panel') ||
-    target.closest('.deck-area') ||
-    target.closest('.card') ||
-    target.closest('.deck') ||
-    target.closest('.sub-deck') ||
-    target.closest('.event-deck')
-  ) {
-    return;
-  }
 
   isDragging.value = true;
   dragStart.x = event.clientX - position.x;
@@ -552,7 +541,6 @@ const subDeckSettings = ref({
 .deck:hover {
   transform: translateY(-5px);
 }
-
 .main-deck-group {
   display: flex;
   gap: 10px;
