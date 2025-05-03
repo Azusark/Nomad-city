@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import GameMap from '../components/GameMap.vue'
+import ImageCard from '../components/ImageCard.vue'
 
 // 创建卡组的工具函数
 function createDeck({ length, prefix, props }) {
@@ -13,23 +14,24 @@ function createDeck({ length, prefix, props }) {
 // 游戏状态
 // 修改主卡组为四个颜色子卡组
 const decks = reactive({
+  
   mainDeckRed: createDeck({
-    length: 5,
+    length: 50,
     prefix: 'main-red',
     props: () => ({ color: '#FF6B6B', type: 'colorBlock' })
   }),
   mainDeckBlue: createDeck({
-    length: 5,
+    length: 50,
     prefix: 'main-blue',
     props: () => ({ color: '#4ECDC4', type: 'colorBlock' })
   }),
   mainDeckYellow: createDeck({
-    length: 5,
+    length: 50,
     prefix: 'main-yellow',
     props: () => ({ color: '#FFD166', type: 'colorBlock' })
   }),
   mainDeckGreen: createDeck({
-    length: 5,
+    length: 50,
     prefix: 'main-green',
     props: () => ({ color: '#90EE90', type: 'colorBlock' })
   }),
@@ -50,10 +52,16 @@ const decks = reactive({
     })
   }),
   deckC: createDeck({
-    length: 10,
-    prefix: 'deckC',
-    props: () => ({ color: '#90EE90' })
+    length: 44,
+    prefix: 'buildings',
+    props: (i) => ({
+      image: `/image/buildings/split-${i + 1}.png`,
+      type: 'buildings', 
+      width: 240,
+      height: 340
+    })
   }),
+
   eventDeckA: createDeck({
     length: 6,
     prefix: 'eventA',
@@ -76,13 +84,12 @@ const decks = reactive({
     })
   }),
   deckD: createDeck({
-    length: 7,
-    prefix: 'operator',
+    length: 18,
+    prefix: 'buildingsstyle',
     props: (i) => ({
-      image: `/image/operators/split-${i + 1}.png`,
-      type: 'operator', // Ensure type property exists
-      width: 300,
-      height: 425
+      image: `/image/buildingsstyle/split-${i + 1}.png`,
+      type: 'buildingsstyle', // Ensure type property exists
+
     })
   }),
   deckE: createDeck({
@@ -103,34 +110,57 @@ const cardsInPlay = reactive([])
 const characters = reactive([
   {
     id: 1,
-    name: '暴风赤红',
+    name: '小红',
     resources: {
-      生命值: 10,
-      攻击力: 3,
-      防御力: 2
+      钱: 0,
+      土: 0,
+      铁: 0,
+      源石: 0,
+      至纯源石:0,
+      总得分: 0
     },
-    color: '#FF6B6B'
+    color: '#FF6B6B',
+    
   },
   {
     id: 2,
-    name: '法师',
+    name: '小蓝',
     resources: {
-      魔力: 8,
-      智力: 5,
-      防御力: 1
+      钱: 0,
+      土: 0,
+      铁: 0,
+      源石: 0,
+      至纯源石:0,
+      总得分: 0
     },
     color: '#4ECDC4'
   },
   {
     id: 3,
-    name: '游侠',
+    name: '小黄',
     resources: {
-      敏捷: 7,
-      幸运: 4,
-      潜行: 3
+      钱: 0,
+      土: 0,
+      铁: 0,
+      源石: 0,
+      至纯源石:0,
+      总得分: 0
     },
     color: '#FFD166'
-  }
+  },
+  {
+    id: 4,
+    name: '小绿',
+    resources: {
+      钱: 0,
+      土: 0,
+      铁: 0,
+      源石: 0,
+      至纯源石:0,
+      总得分: 0
+    },
+    color: '#90EE90'
+  },
 ])
 
 // 拖动状态
@@ -152,7 +182,7 @@ function getRandomColor() {
   return colors[Math.floor(Math.random() * colors.length)]
 }
 
-// 抽卡功能
+// 抽卡功能  计算出生创造点
 function drawCard(deckName) {
   if (decks[deckName].length === 0) return
   
@@ -161,8 +191,8 @@ function drawCard(deckName) {
   
   cardsInPlay.push({
     ...card,
-    x: window.innerWidth / 2 + 2000,
-    y: window.innerHeight / 2 - 1800,
+    x: window.innerWidth / 2 + 2600,
+    y: window.innerHeight / 2 - 3200,
     zIndex: 1,
     'data-type': card.type // 添加类型属性以应用正确的样式
   })
@@ -194,6 +224,8 @@ function onDrag(event) {
 function stopDrag() {
   isDragging.value = false
 }
+
+
 
 // 卡牌拖动处理函数
 function startCardDrag(card, event) {
@@ -287,8 +319,8 @@ const subDeckSettings = ref({
         <div class="resource" v-for="(value, name) in character.resources" :key="name">
           <span>{{ name }}: {{ value }}</span>
           <div class="resource-controls">
-            <button @click.stop="changeResource(index, name, 1)">+</button>
-            <button @click.stop="changeResource(index, name, -1)">-</button>
+            <button  @click.stop="changeResource(index, name, 1)" style="color: black;">+</button>
+            <button  @click.stop="changeResource(index, name, -1)" style="color: black;">-</button>
           </div>
         </div>
       </div>
@@ -301,7 +333,99 @@ const subDeckSettings = ref({
     
     <!-- 游戏主区域 -->
     <div class="play-area">
-      <!-- 放置的卡牌 -->
+      <!-- 放置的卡牌  圣堂 -->
+
+    <ImageCard
+      image-src="/image/core.png"
+      :width="240"
+      :height="340"
+      :count="4"
+      :z-index="1"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    
+    <ImageCard
+      image-src="/image/board.png"
+      :width="800"
+      :height="1400"
+      :count="4"
+      :z-index="0"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+
+    <ImageCard
+      image-src="/image/highway.jpg"
+      :width="120"
+      :height="40"
+      :count="4"
+      :z-index="1"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/yellowlong.png"
+      :width="240"
+      :height="340"
+      :count="1"
+      :z-index="2"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/redlong.png"
+      :width="240"
+      :height="340"
+      :count="1"
+      :z-index="2"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/bluelong.png"
+      :width="240"
+      :height="340"
+      :count="1"
+      :z-index="2"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/redcity.png"
+      :width="50"
+      :height="90"
+      :count="1"
+      :z-index="3"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/bluecity.png"
+      :width="50"
+      :height="90"
+      :count="1"
+      :z-index="3"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/greencity.png"
+      :width="50"
+      :height="90"
+      :count="1"
+      :z-index="3"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/yellowcity.png"
+      :width="50"
+      :height="90"
+      :count="1"
+      :z-index="3"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+    <ImageCard
+      image-src="/image/xianshou.png"
+      :width="80"
+      :height="140"
+      :count="1"
+      :z-index="2"
+      :initial-position="(i) => ({ x: 1000 + i * 30, y: -1000 })"
+    />
+
       <div 
         class="card" 
         v-for="card in cardsInPlay" 
@@ -352,7 +476,7 @@ const subDeckSettings = ref({
       <div class="sub-decks">
         <div 
           class="deck sub-deck" 
-          v-for="(deck, name) in { deckA: 'A', deckB: 'B', deckC: 'C' }" 
+          v-for="(deck, name) in { deckA: '干员', deckB: '企业板', deckC: '建筑',deckD:'建筑样式' }" 
           :key="name"
           @click="drawCard(name)"
         >
@@ -376,6 +500,8 @@ const subDeckSettings = ref({
           <div v-if="decks[name].length === 0" class="empty-deck">
             空
           </div>
+
+          
           <div v-else class="deck-content">
             事件卡组{{ deck }}<br>{{ decks[name].length }}
           </div>
@@ -388,8 +514,8 @@ const subDeckSettings = ref({
 <style scoped>
 .game-container {
   position: relative;
-  width: 200vw;  /* 扩大容器尺寸 */
-  height: 200vh;
+  width: 350vw;  /* 扩大容器尺寸 */
+  height: 350vh;
   background-color: #1f1e33;
   transition: transform 0.1s ease;
   will-change: transform;
@@ -477,9 +603,19 @@ const subDeckSettings = ref({
   height: 425px !important;
 }
 
+.play-area .card[data-type="buildings"] {
+  width: 240px !important;
+  height: 340px !important;
+}
+
+.play-area .card[data-type="buildingsstyle"] {
+  width: 372px !important;
+  height: 240px !important;
+}
+
 .play-area .card[data-type="enterprise"] {
-  width: 325px !important;
-  height: 925px !important;
+  width: 240px !important;
+  height: 660px !important;
 }
 
 /* Add scope limitation to default styles */
@@ -499,10 +635,10 @@ const subDeckSettings = ref({
 /* 角色面板 */
 .character-panel {
   position: fixed;  /* 保持固定定位 */
-  top: 380px;
-  left: 600px;
+  top: 570px;
+  left: 1500px;
   display: flex;
-  gap: 15px;
+  gap: 5px;
   z-index: 2;
 }
 
@@ -510,15 +646,16 @@ const subDeckSettings = ref({
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  width: 180px;
-  color: white;
+  width: 50px;
+  color: black;
+  
 }
 
 .character-card h3 {
   margin-top: 0;
   margin-bottom: 10px;
   text-align: center;
-  font-size: 1.2em;
+  font-size: 1.5em;
 }
 
 .resource {
@@ -554,12 +691,12 @@ const subDeckSettings = ref({
 /* 卡组区域 */
 .deck-area {
   position: fixed;
-  top: 200px;
-  right: 960px;
+  top: 500px;
+  right: 1850px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  z-index: 2;
+  z-index: 0;
 }
 
 /* 卡组样式 */
@@ -639,5 +776,6 @@ const subDeckSettings = ref({
   width: 80px;    /* 与其他卡组按钮统一 */
   height: 120px;
 }
+
 
 </style>
